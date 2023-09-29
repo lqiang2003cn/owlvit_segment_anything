@@ -85,9 +85,10 @@ def load_owlvit(checkpoint_path="owlvit-large-patch14", device='cpu'):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("OWL-ViT Segment Aything", add_help=True)
 
-    parser.add_argument("--image_path", "-i", type=str, default="demo_images/tanager.jpg", help="path to image file")
+    parser.add_argument("--image_path", "-i", type=str, default="demo_images/cup.jpg", help="path to image file")
     parser.add_argument("--text_prompt", "-t", type=str,
-                        default="back,beak,belly,breast,crown,forehead,eyes,legs,wings,nape,tail,throat", help="text prompt")
+                        # default="back,beak,belly,breast,crown,forehead,eyes,legs,wings,nape,tail,throat", help="text prompt")
+                        default="left most part of the handle ,body", help="text prompt")
     parser.add_argument("--output_dir", "-o", type=str, default="outputs", help="output directory")
     parser.add_argument('--owlvit_model', help='select model', default="owlvit-base-patch32",
                         choices=["owlvit-base-patch32", "owlvit-base-patch16", "owlvit-large-patch14"])

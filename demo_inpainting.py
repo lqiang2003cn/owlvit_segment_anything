@@ -17,19 +17,19 @@ from io import BytesIO
 from transformers import OwlViTProcessor, OwlViTForObjectDetection
 
 # segment anything
-from segment_anything import build_sam, SamPredictor 
-
+from segment_anything import build_sam, SamPredictor
 
 # diffusers
 from diffusers import StableDiffusionInpaintPipeline
 
 import gc
 
+
 def show_mask(mask, ax, random_color=False):
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
     else:
-        color = np.array([30/255, 144/255, 255/255, 0.6])
+        color = np.array([30 / 255, 144 / 255, 255 / 255, 0.6])
     h, w = mask.shape[-2:]
     mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
     ax.imshow(mask_image)
@@ -38,7 +38,8 @@ def show_mask(mask, ax, random_color=False):
 def show_box(box, ax):
     x0, y0 = box[0], box[1]
     w, h = box[2] - box[0], box[3] - box[1]
-    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2))  
+    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0, 0, 0, 0), lw=2))
+
 
 def plot_boxes_to_image(image_pil, tgt):
     H, W = tgt["size"]
@@ -75,6 +76,7 @@ def plot_boxes_to_image(image_pil, tgt):
 
     return image_pil, mask
 
+
 def load_owlvit(checkpoint_path="owlvit-large-patch14", device='cpu'):
     """
     Return: model, processor (for text inputs)
@@ -83,25 +85,22 @@ def load_owlvit(checkpoint_path="owlvit-large-patch14", device='cpu'):
     model = OwlViTForObjectDetection.from_pretrained(f"google/{checkpoint_path}")
     model.to(device)
     model.eval()
-    
+
     return model, processor
 
 
-
-
 if __name__ == "__main__":
-
+    # --get_topk  --text_prompt ,throat --inpaint_prompt "" -o outputs/ --device cuda:1
     parser = argparse.ArgumentParser("OWL-ViT Segment Aything", add_help=True)
 
-    parser.add_argument("--image_path", "-i", type=str, required=True, help="path to image file")
-    parser.add_argument("--text_prompt", "-t", type=str, required=True, help="text prompt")
-    parser.add_argument(
-        "--output_dir", "-o", type=str, default="outputs", required=True, help="output directory"
-    )
-    parser.add_argument("--inpaint_prompt", type=str, required=True, help="inpaint prompt")
-    parser.add_argument('--owlvit_model', help='select model', default="owlvit-base-patch32", choices=["owlvit-base-patch32", "owlvit-base-patch16", "owlvit-large-patch14"])
+    parser.add_argument("--image_path", "-i", type=str, default="demo_images/tanager.jpg", help="path to image file")
+    parser.add_argument("--text_prompt", "-t", type=str, default="back,beak,belly,breast,crown,forehead,eyes,legs,wings,nape,tail", help="text prompt")
+    parser.add_argument("--output_dir", "-o", type=str, default="outputs", help="output directory")
+    parser.add_argument("--inpaint_prompt", type=str, default="a bird with a blue wing", help="inpaint prompt")
+    parser.add_argument('--owlvit_model', help='select model', default="owlvit-base-patch32",
+                        choices=["owlvit-base-patch32", "owlvit-base-patch16", "owlvit-large-patch14"])
     parser.add_argument("--box_threshold", type=float, default=0.0, help="box threshold")
-    parser.add_argument('--get_topk', help='detect topk boxes per class or not', action="store_true")
+    parser.add_argument('--get_topk', help='detect topk boxes per class or not', default=True, action="store_true")
     parser.add_argument('--device', help='select device', default="cuda:0", type=str)
     args = parser.parse_args()
 
@@ -119,7 +118,7 @@ if __name__ == "__main__":
     # load image & texts
     image = Image.open(args.image_path).convert('RGB')
     texts = [text_prompt.split(",")]
-    
+
     # load OWL-ViT model
     model, processor = load_owlvit(checkpoint_path=args.owlvit_model, device=args.device)
 
@@ -127,17 +126,18 @@ if __name__ == "__main__":
     with torch.no_grad():
         inputs = processor(text=texts, images=image, return_tensors="pt").to(args.device)
         outputs = model(**inputs)
-    
+
     # Target image sizes (height, width) to rescale box predictions [batch_size, 2]
     target_sizes = torch.Tensor([image.size[::-1]])
     # Convert outputs (bounding boxes and class logits) to COCO API
-    results = processor.post_process_object_detection(outputs=outputs, threshold=box_threshold, target_sizes=target_sizes.to(args.device))
+    results = processor.post_process_object_detection(outputs=outputs, threshold=box_threshold,
+                                                      target_sizes=target_sizes.to(args.device))
     scores = torch.sigmoid(outputs.logits)
     topk_scores, topk_idxs = torch.topk(scores, k=1, dim=1)
-    
+
     i = 0  # Retrieve predictions for the first image for the corresponding text queries
     text = texts[i]
-    if args.get_topk:    
+    if args.get_topk:
         topk_idxs = topk_idxs.squeeze(1).tolist()
         topk_boxes = results[i]['boxes'][topk_idxs]
         topk_scores = topk_scores.view(len(text), -1)
@@ -145,7 +145,6 @@ if __name__ == "__main__":
         boxes, scores, labels = topk_boxes, topk_scores, topk_labels
     else:
         boxes, scores, labels = results[i]["boxes"], results[i]["scores"], results[i]["labels"]
-    
 
     # Print detected objects and rescaled box coordinates
     for box, score, label in zip(boxes, scores, labels):
@@ -154,12 +153,12 @@ if __name__ == "__main__":
 
     boxes = boxes.cpu().detach().numpy()
     normalized_boxes = copy.deepcopy(boxes)
-    
+
     # # visualize pred
     size = image.size
     pred_dict = {
         "boxes": normalized_boxes,
-        "size": [size[1], size[0]], # H, W
+        "size": [size[1], size[0]],  # H, W
         "labels": [text[idx] for idx in labels]
     }
 
@@ -174,7 +173,7 @@ if __name__ == "__main__":
     image = cv2.imread(args.image_path)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     predictor.set_image(image)
-    
+
     H, W = size[1], size[0]
 
     for i in range(boxes.shape[0]):
@@ -183,24 +182,24 @@ if __name__ == "__main__":
     boxes = torch.tensor(boxes, device=predictor.device)
 
     transformed_boxes = predictor.transform.apply_boxes_torch(boxes, image.shape[:2])
-    
+
     masks, _, _ = predictor.predict_torch(
-        point_coords = None,
-        point_labels = None,
-        boxes = transformed_boxes,
-        multimask_output = False,
+        point_coords=None,
+        point_labels=None,
+        boxes=transformed_boxes,
+        multimask_output=False,
     )
 
     # inpainting pipeline
-    mask = masks[0][0].cpu().numpy() # simply choose the first mask
+    mask = masks[0][0].cpu().numpy()  # simply choose the first mask
     mask_pil = Image.fromarray(mask)
     image_pil = Image.fromarray(image)
-    image_pil =  image_pil.resize((512, 512))
+    image_pil = image_pil.resize((512, 512))
     mask_pil = mask_pil.resize((512, 512))
     print(image_pil.size, mask_pil.size)
-    
+
     pipe = StableDiffusionInpaintPipeline.from_pretrained(
-    "runwayml/stable-diffusion-inpainting"
+        "runwayml/stable-diffusion-inpainting"
     )
     pipe = pipe.to(predictor.device)
 
