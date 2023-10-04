@@ -80,7 +80,8 @@ def owl_vit():
     image_with_box.save(os.path.join("outputs/owlvit_box.jpg"))
 
     # run segment anything (SAM)
-    image = cv2.cvtColor(im_array_from_request, cv2.COLOR_BGR2RGB)
+    # image = cv2.cvtColor(im_array_from_request, cv2.COLOR_BGR2RGB)
+    image = im_array_from_request
     predictor.set_image(image)
     H, W = size[1], size[0]
     for i in range(boxes.shape[0]):
