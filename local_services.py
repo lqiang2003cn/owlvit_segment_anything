@@ -1,15 +1,18 @@
 import copy
 import os
 
+import cv2
 import numpy as np
 import tiktoken
 import torch
 from PIL import Image
 from flask import Flask, request, abort
+from matplotlib import pyplot as plt
+from segment_anything import SamPredictor, build_sam
 from transformers import OwlViTProcessor, OwlViTForObjectDetection
 from waitress import serve
 
-from utils import plot_boxes_to_image
+from utils import plot_boxes_to_image, show_mask, show_box
 
 app = Flask(__name__)
 
@@ -76,6 +79,30 @@ def owl_vit():
     image_with_box = plot_boxes_to_image(image, pred_dict)[0]
     image_with_box.save(os.path.join("outputs/owlvit_box.jpg"))
 
+    # run segment anything (SAM)
+    image = cv2.cvtColor(im_array_from_request, cv2.COLOR_BGR2RGB)
+    predictor.set_image(image)
+    H, W = size[1], size[0]
+    for i in range(boxes.shape[0]):
+        boxes[i] = torch.Tensor(boxes[i])
+
+    boxes = torch.tensor(boxes, device=predictor.device)
+    transformed_boxes = predictor.transform.apply_boxes_torch(boxes, image.shape[:2])
+    masks, _, _ = predictor.predict_torch(
+        point_coords=None,
+        point_labels=None,
+        boxes=transformed_boxes,
+        multimask_output=False,
+    )
+    plt.figure(figsize=(10, 10))
+    plt.imshow(image)
+    for mask in masks:
+        show_mask(mask.cpu().numpy(), plt.gca(), random_color=True)
+    for box in boxes:
+        show_box(box.cpu().numpy(), plt.gca())
+    plt.axis('off')
+    plt.savefig("outputs/owlvit_segment_anything_output.jpg")
+
     result_dict = {'output': 'ok'}
     return result_dict
 
@@ -93,5 +120,7 @@ if __name__ == "__main__":
     owl_vit_model = OwlViTForObjectDetection.from_pretrained(f"google/{owlvit_model}")
     owl_vit_model.to(device)
     owl_vit_model.eval()
+    predictor = SamPredictor(build_sam(checkpoint="./sam_vit_h_4b8939.pth").to(device))
+    print("device:" + str(predictor.device))
 
     serve(app, host="localhost", port=8081)
