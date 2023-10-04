@@ -110,6 +110,7 @@ if __name__ == "__main__":
     os.makedirs(output_dir, exist_ok=True)
     # load image & texts
     image = Image.open(args.image_path)
+    image.save("outputs/from_quest.jpeg")
     texts = [text_prompt.split(",")]
 
     # load OWL-ViT model
