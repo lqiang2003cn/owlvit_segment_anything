@@ -104,7 +104,8 @@ def owl_vit():
     plt.axis('off')
     plt.savefig("outputs/owlvit_segment_anything_output.jpg")
 
-    result_dict = {'output': 'ok'}
+    masks_res = masks.cpu().numpy()[:, 0, :, :].tolist()
+    result_dict = {'masks': masks_res}
     return result_dict
 
 
