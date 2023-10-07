@@ -105,7 +105,8 @@ def owl_vit():
     plt.savefig("outputs/owlvit_segment_anything_output.jpg")
 
     masks_res = masks.cpu().numpy()[:, 0, :, :].tolist()
-    result_dict = {'masks': masks_res}
+    np.save("lq_test/doc/resources/masks", masks_res)
+    result_dict = {'response': "ok"}
     return result_dict
 
 
