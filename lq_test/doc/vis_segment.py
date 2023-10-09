@@ -17,7 +17,19 @@ if __name__ == "__main__":
 
     filtered_colors = np.asarray(pcd.colors).reshape((480, 640, 3))[mask]
     pcd.colors = o3d.utility.Vector3dVector(filtered_colors)
-    o3d.visualization.draw([pcd])
+    o3d.visualization.draw(
+        geometry=[pcd],
+        show_ui=False,
+        lookat=[0, 0, 1],
+        # eye=[0, 0, 0],
+        eye=[0, 0, 0],
+        up=[0, -1, 0],
+        intrinsic_matrix=[
+            [519.32470703125, 0.0, 323.80621337890625],
+            [0.0, 519.1089477539062, 236.90045166015625],
+            [0.0, 0.0, 1.0]
+        ]
+    )
 
     # mask = np.load('resources/masks.npy')[0]
     # hwd = np.asarray(pcd.points)
