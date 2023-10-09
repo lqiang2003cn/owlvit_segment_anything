@@ -19,7 +19,6 @@ if __name__ == "__main__":
     pcd.colors = o3d.utility.Vector3dVector(filtered_colors)
     o3d.visualization.draw(
         geometry=[pcd],
-        show_ui=False,
         lookat=[0, 0, 1],
         # eye=[0, 0, 0],
         eye=[0, 0, 0],
