@@ -9,7 +9,7 @@ import open3d as o3d
 import numpy as np
 
 if __name__ == "__main__":
-    pcd = o3d.io.read_point_cloud('resources/colored_points_20231009_102104.ply')
+    pcd = o3d.io.read_point_cloud('resources/colored_points_20231009_203407.ply')
 
     mask = np.load('resources/masks.npy')[0]
     filtered_points = np.asarray(pcd.points).reshape((480, 640, 3))[mask]
