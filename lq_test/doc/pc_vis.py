@@ -9,19 +9,20 @@ import open3d as o3d
 import numpy as np
 
 if __name__ == "__main__":
-    pcd = o3d.io.read_point_cloud('/home/lq/.ros/point_cloud/points_20231006_225450.ply')
+    pcd = o3d.io.read_point_cloud('resources/colored_points_20231009_102104.ply')
+
     mask = np.load('resources/masks.npy')[0]
-    hwd = np.asarray(pcd.points)
+    filtered_points = np.asarray(pcd.points).reshape((480, 640, 3))[mask]
+    pcd.points = o3d.utility.Vector3dVector(filtered_points)
 
-    pcd = o3d.geometry.PointCloud()
-
-    pcd.points = o3d.utility.Vector3dVector(hwd)
-
-    # hwd = hwd.reshape((480, 640, 3))
-    # filtered = hwd[mask]
-    # pcd.points = o3d.utility.Vector3dVector(filtered)
-    # pcd.paint_uniform_color([0.5, 0.5, 0.5])
-    # pcd.estimate_normals()
-    # pcd.orient_normals_consistent_tangent_plane(1)
-    print("Displaying Open3D pointcloud made using numpy array ...")
+    filtered_colors = np.asarray(pcd.colors).reshape((480, 640, 3))[mask]
+    pcd.colors = o3d.utility.Vector3dVector(filtered_colors)
     o3d.visualization.draw([pcd])
+
+    # mask = np.load('resources/masks.npy')[0]
+    # hwd = np.asarray(pcd.points)
+    # hwd = hwd.reshape((480, 640, 3))
+    # hwd[mask] = np.array([0, 0,  0])
+    # hwd = hwd.reshape((-1,3))
+    # pcd.points = o3d.utility.Vector3dVector(hwd)
+    # o3d.visualization.draw([pcd])
