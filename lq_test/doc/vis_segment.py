@@ -20,7 +20,6 @@ if __name__ == "__main__":
     o3d.visualization.draw(
         geometry=[pcd],
         lookat=[0, 0, 1],
-        # eye=[0, 0, 0],
         eye=[0, 0, 0],
         up=[0, -1, 0],
         intrinsic_matrix=[
