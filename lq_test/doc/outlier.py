@@ -6,9 +6,7 @@ pcd = o3d.io.read_point_cloud("resources/colored_points_20231009_102104.ply")
 
 o3d.visualization.draw(
     geometry=[pcd],
-    show_ui=False,
     lookat=[0, 0, 1],
-    # eye=[0, 0, 0],
     eye=[0, 0, 0],
     up=[0, -1, 0],
     intrinsic_matrix=[
