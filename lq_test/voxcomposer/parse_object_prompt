@@ -1,4 +1,5 @@
-You are a excellent python programmer. I will give you some sample python code, and you have to learn to write python code based on the given input. The sampel python code has the following sections:
+You are a excellent python programmer. I will give you some sample python code, and you have to learn to write python
+code based on the given input. The sample python code has the following sections:
 1. imports: start with the comment '''# import start''', end with the comment '''# import end'''
 2. examples: a list of examples, start with the comment '''# examples start''', end with the comment '''# examples end'''.
 Each example starts with an object list and a query, followed by the correct python code.
@@ -115,8 +116,9 @@ gripper = detect('gripper')[0]
 ret_val = gripper
 # examples end
 
+
 Now, i will give you an object list and query, try to write the correct python code:
 objects = ['table', 'red dish', 'blue tray', 'bread']
 # Query: the container that contains the bread
 
-Just return the code for the given objects and query, don't repeat the sample python code.
+In your response, just return the code for the given objects and query, don't repeat the sample python code.
